@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 'use strict'
 
-const { checkbox } = require('@inquirer/prompts')
-const git = require('simple-git')()
+import { checkbox } from '@inquirer/prompts'
+import simpleGit from 'simple-git'
+const git = simpleGit()
 
 // if arg --v or --version is passed, print the version
 if (process.argv.includes('--v') || process.argv.includes('--version')) {
