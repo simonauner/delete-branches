@@ -4,6 +4,13 @@
 const { checkbox } = require('@inquirer/prompts')
 const git = require('simple-git')()
 
+// if arg --v or --version is passed, print the version
+if (process.argv.includes("--v") || process.argv.includes("--version")) {
+  const { version } = require("./package.json");
+  console.log(version);
+  process.exit(0);
+}
+
 function validate(summary) {
   const { all, current } = summary
 
