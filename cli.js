@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict'
 
-const inquirer = require('inquirer')
+const { checkbox } = require('@inquirer/prompts')
 const git = require('simple-git')()
 
 function validate(summary) {
@@ -28,24 +28,18 @@ function parse(summary) {
 }
 
 function format(branches) {
-  return branches.reduce((list, name) => [...list, { name }], [])
+  return branches.reduce((list, name) => [...list, { value: name }], [])
 }
 
 function ask(choices) {
-  return inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'branches',
-      message: '[delete-branches] Select the branches you want to delete:',
-      choices,
-    },
-  ])
+  return checkbox({
+    message: '[delete-branches] Select the branches you want to delete:',
+    choices,
+  })
 }
 
-function remove(answers) {
-  const { branches } = answers
-
-  if (!branches.length) {
+function remove(branches) {
+  if (!branches || !branches.length) {
     return console.log('[delete-branches] No branches deleted')
   }
 
