@@ -5,10 +5,10 @@ const { checkbox } = require('@inquirer/prompts')
 const git = require('simple-git')()
 
 // if arg --v or --version is passed, print the version
-if (process.argv.includes("--v") || process.argv.includes("--version")) {
-  const { version } = require("./package.json");
-  console.log(version);
-  process.exit(0);
+if (process.argv.includes('--v') || process.argv.includes('--version')) {
+  const { version } = require('./package.json')
+  console.log(version)
+  process.exit(0)
 }
 
 function validate(summary) {
@@ -38,11 +38,11 @@ function format(branches) {
   return branches.reduce((list, name) => [...list, { value: name }], [])
 }
 
-function ask(choices) {
+async function ask(choices) {
   return checkbox({
     message: '[delete-branches] Select the branches you want to delete:',
     choices,
-  })
+  }).catch(() => {})
 }
 
 async function remove(branches) {
@@ -78,7 +78,7 @@ function askForForceDelete(failedBranches) {
   return checkbox({
     message: '[delete-branches] Select the branches you want to force-delete:',
     choices: failedBranches.map((branch) => ({ value: branch })),
-  })
+  }).catch(() => {})
 }
 
 function forceDeleteBranches(branches) {
