@@ -1,5 +1,6 @@
 {
   "name": "delete-branches",
+  "type": "module",
   "version": "0.0.9",
   "description": "list and delete branches",
   "main": "cli.js",
@@ -21,7 +22,7 @@
   "author": "Guilherme Pontes <guilhermepontes@msn.com>",
   "license": "MIT",
   "dependencies": {
-    "inquirer": "^5.1.0",
+    "@inquirer/prompts": "4.0.0",
     "simple-git": "3.22.0"
   }
 }

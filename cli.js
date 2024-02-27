@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 'use strict'
 
-const inquirer = require('inquirer')
-const git = require('simple-git/promise')()
+import { checkbox } from '@inquirer/prompts'
+import simpleGit from 'simple-git'
+const git = simpleGit()
+
+// if arg --v or --version is passed, print the version
+if (process.argv.includes('--v') || process.argv.includes('--version')) {
+  const { version } = require('./package.json')
+  console.log(version)
+  process.exit(0)
+}
 
 function validate(summary) {
   const { all, current } = summary
@@ -28,33 +36,70 @@ function parse(summary) {
 }
 
 function format(branches) {
-  return branches.reduce((list, name) => [...list, { name }], [])
+  return branches.reduce((list, name) => [...list, { value: name }], [])
 }
 
-function ask(choices) {
-  return inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'branches',
-      message: '[delete-branches] Select the branches you want to delete:',
-      choices,
-    },
-  ])
+async function ask(choices) {
+  return checkbox({
+    message: '[delete-branches] Select the branches you want to delete:',
+    choices,
+  }).catch(() => {})
 }
 
-function remove(answers) {
-  const { branches } = answers
-
-  if (!branches.length) {
+async function remove(branches) {
+  if (!branches || !branches.length) {
     return console.log('[delete-branches] No branches deleted')
   }
 
-  branches.forEach(removeBranch)
+  const failedBranches = []
+  for (const branch of branches) {
+    try {
+      await removeBranch(branch)
+    } catch (err) {
+      failedBranches.push(branch)
+    }
+  }
+
+  if (!failedBranches.length) {
+    return console.log('[delete-branches] All branches deleted')
+  }
+
+  console.log('[delete-branches] Some branches could not be deleted')
+
+  askForForceDelete(failedBranches).then(forceDeleteBranches)
 }
 
 function removeBranch(branch) {
-  git.branch(['-D', branch])
-  console.log(`[delete-branches] ${branch} deleted`)
+  return git.deleteLocalBranch(branch).then(() => {
+    console.log(`[delete-branches] ${branch} deleted`)
+  })
+}
+
+function askForForceDelete(failedBranches) {
+  return checkbox({
+    message: '[delete-branches] Select the branches you want to force-delete:',
+    choices: failedBranches.map((branch) => ({ value: branch })),
+  }).catch(() => {})
+}
+
+function forceDeleteBranches(branches) {
+  if (!branches || !branches.length) {
+    return console.log('[delete-branches] No branches force-deleted')
+  }
+  branches.forEach(forceDeleteBranch)
+}
+
+function forceDeleteBranch(branch) {
+  git
+    .deleteLocalBranch(branch, true)
+    .then(() => {
+      console.log(`[delete-branches] ${branch} force-deleted`)
+    })
+    .catch((err) => {
+      console.error(
+        `[delete-branches] ${branch} could not be force-deleted: ${err}`
+      )
+    })
 }
 
 git
